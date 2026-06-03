@@ -1,0 +1,1020 @@
+{
+  "config": {
+    "mcp_server_url": "https://your-mcp-server.run.app/mcp",
+    "mcp_server_name": "Odoo MCP Staging",
+    "claude_base_url": "https://claude.ai",
+    "oauth_client_id": "your-google-client-id.apps.googleusercontent.com"
+  },
+  "scenarios": [
+    {
+      "id": "S01_verify_login",
+      "name": "Verify Claude.ai Login",
+      "description": "Verify user is logged into Claude.ai",
+      "prompt": "Navigate to claude.ai and verify I'm logged in by checking we're not on a login page. The page should show the chat interface.",
+      "expected": "Chat interface visible, not login form",
+      "category": "setup"
+    },
+    {
+      "id": "S02_add_server",
+      "name": "Add MCP Server",
+      "description": "Add the Odoo MCP server as a custom integration",
+      "prompt": "Go to claude.ai/settings/connectors, click 'Browse connectors', then 'add a custom one', fill in name '{mcp_server_name}' and URL '{mcp_server_url}', expand Advanced settings and add OAuth Client ID, then submit",
+      "expected": "Integration appears in the connectors list",
+      "category": "setup"
+    },
+    {
+      "id": "S03_oauth_connect",
+      "name": "OAuth Connection",
+      "description": "Connect and authenticate with the MCP server via OAuth",
+      "prompt": "On the connectors page, find '{mcp_server_name}' and click Connect. Complete the Google sign-in flow when prompted",
+      "expected": "Integration shows 'Configure' button (connected)",
+      "category": "setup"
+    },
+    {
+      "id": "S04_verify_tools",
+      "name": "Verify Tools Available",
+      "description": "Verify all MCP tools are loaded and available",
+      "prompt": "Go to Settings > Connectors > '{mcp_server_name}' > Configure and count the available tools",
+      "expected": "19+ tools visible including profile, leave, and document tools",
+      "category": "setup"
+    },
+    {
+      "id": "P01_get_my_profile",
+      "name": "Get My Profile",
+      "description": "Test retrieving authenticated user's employee profile",
+      "prompt": "Show me my employee profile from Odoo",
+      "expected": "Returns user profile with name, job_title, department, email, phone, manager, hire_date",
+      "category": "profile",
+      "tool": "get_my_profile"
+    },
+    {
+      "id": "P02_get_my_manager",
+      "name": "Get My Manager",
+      "description": "Test retrieving manager information",
+      "prompt": "Who is my manager? Show me their contact details",
+      "expected": "Returns manager's name, title, email, phone, department",
+      "category": "profile",
+      "tool": "get_my_manager"
+    },
+    {
+      "id": "P03_get_my_team",
+      "name": "Get My Team",
+      "description": "Test retrieving team/department colleagues",
+      "prompt": "Show me who else is in my department",
+      "expected": "Returns list of colleagues in same department with names, titles, emails",
+      "category": "profile",
+      "tool": "get_my_team"
+    },
+    {
+      "id": "P04_find_colleague_name",
+      "name": "Find Colleague by Name",
+      "description": "Test searching for a colleague by name",
+      "prompt": "Find contact info for Martin in Odoo",
+      "expected": "Returns matching employees with name, email, phone, department",
+      "category": "profile",
+      "tool": "find_colleague"
+    },
+    {
+      "id": "P05_find_by_department",
+      "name": "Find by Department",
+      "description": "Test listing employees in a specific department",
+      "prompt": "List all employees in the Engineering department",
+      "expected": "Returns all employees in specified department with roles",
+      "category": "profile",
+      "tool": "search_employees"
+    },
+    {
+      "id": "P06_get_direct_reports",
+      "name": "Get Direct Reports",
+      "description": "Test retrieving direct reports for a manager",
+      "prompt": "Show me who reports directly to me",
+      "expected": "Returns direct reports with names and titles",
+      "category": "profile",
+      "tool": "get_direct_reports"
+    },
+    {
+      "id": "P07_update_contact",
+      "name": "Update My Contact Info",
+      "description": "Test updating employee contact information",
+      "prompt": "Update my mobile phone number to +1-555-TEST",
+      "expected": "Confirmation: contact info updated successfully",
+      "category": "profile",
+      "tool": "update_my_contact",
+      "modifies_data": true
+    },
+    {
+      "id": "P08_search_directory",
+      "name": "Search Employee Directory",
+      "description": "Test searching employees by job title",
+      "prompt": "Search for employees with 'Engineer' in their job title",
+      "expected": "Returns matching employees with job titles",
+      "category": "profile",
+      "tool": "search_employees"
+    },
+    {
+      "id": "P09_custom_fields",
+      "name": "View Custom Fields",
+      "description": "Test retrieving custom employee fields like preferred name and division",
+      "prompt": "Show my preferred name and division from my profile",
+      "expected": "Returns x_preferred_name and x_division fields if configured",
+      "category": "profile",
+      "tool": "get_my_profile"
+    },
+    {
+      "id": "P10_coach_info",
+      "name": "Get Coach Info",
+      "description": "Test retrieving coach/mentor information",
+      "prompt": "Who is my coach or mentor assigned in Odoo?",
+      "expected": "Returns coach name and contact details or indicates no coach assigned",
+      "category": "profile",
+      "tool": "get_my_profile"
+    },
+    {
+      "id": "P11_find_all_managers",
+      "name": "Find All Managers",
+      "description": "Test searching for employees with manager roles across departments",
+      "prompt": "Find all employees who are managers in the company",
+      "expected": "Returns employees with manager/director titles",
+      "category": "profile",
+      "tool": "search_records"
+    },
+    {
+      "id": "P12_revert_contact",
+      "name": "Revert Contact Update",
+      "description": "Test reverting a contact info change",
+      "prompt": "Revert my mobile phone back to the original value +1 555-0100",
+      "expected": "Contact info reverted successfully",
+      "category": "profile",
+      "tool": "update_my_contact",
+      "modifies_data": true,
+      "depends_on": "P07_update_contact"
+    },
+    {
+      "id": "L01_get_leave_balance",
+      "name": "Get Leave Balance",
+      "description": "Test checking leave/vacation balance",
+      "prompt": "How many vacation days do I have left?",
+      "expected": "Returns leave balance by type (PTO, sick, etc.) with allocated, taken, remaining days",
+      "category": "leave",
+      "tool": "get_my_leave_balance"
+    },
+    {
+      "id": "L02_leave_balance_type",
+      "name": "Get Specific Leave Balance",
+      "description": "Test checking specific leave type balance",
+      "prompt": "How many sick days do I have remaining?",
+      "expected": "Returns specific leave type balance",
+      "category": "leave",
+      "tool": "get_my_leave_balance"
+    },
+    {
+      "id": "L03_leave_history",
+      "name": "View Leave History",
+      "description": "Test viewing past leave requests",
+      "prompt": "Show all my time-off requests from 2025",
+      "expected": "Returns list of past requests with dates, type, days, status",
+      "category": "leave",
+      "tool": "get_my_leave_requests"
+    },
+    {
+      "id": "L04_pending_leave",
+      "name": "View Pending Leave",
+      "description": "Test filtering leave requests by pending status",
+      "prompt": "Do I have any leave requests waiting for approval?",
+      "expected": "Returns only pending/draft leave requests or empty list",
+      "category": "leave",
+      "tool": "get_my_leave_requests"
+    },
+    {
+      "id": "L05_upcoming_leave",
+      "name": "View Upcoming Leave",
+      "description": "Test viewing approved future leave",
+      "prompt": "What time off do I have scheduled coming up?",
+      "expected": "Returns approved future leave requests with dates",
+      "category": "leave",
+      "tool": "get_my_leave_requests"
+    },
+    {
+      "id": "L06_request_vacation",
+      "name": "Request Vacation",
+      "description": "Test submitting a new vacation request",
+      "prompt": "Submit a vacation request for March 10-14, 2026 with reason 'Spring break'",
+      "expected": "Leave request created with request_id, status 'submitted' or 'draft'",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true
+    },
+    {
+      "id": "L07_request_sick",
+      "name": "Request Sick Leave",
+      "description": "Test submitting a sick leave request",
+      "prompt": "Submit a sick leave for today because I'm not feeling well",
+      "expected": "Sick leave request created",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true
+    },
+    {
+      "id": "L08_request_half_day",
+      "name": "Request Half Day",
+      "description": "Test requesting a half day off",
+      "prompt": "Request a half day off on Friday afternoon for a doctor appointment",
+      "expected": "Request created with half-day duration",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true
+    },
+    {
+      "id": "L09_cancel_leave",
+      "name": "Cancel Leave Request",
+      "description": "Test canceling a pending leave request",
+      "prompt": "Cancel my most recent pending leave request",
+      "expected": "Leave request cancelled, status 'cancelled' or 'refuse'",
+      "category": "leave",
+      "tool": "cancel_leave_request",
+      "modifies_data": true,
+      "depends_on": "L06_request_vacation"
+    },
+    {
+      "id": "L10_team_availability",
+      "name": "Check Team Availability",
+      "description": "Test checking who is on leave in the team",
+      "prompt": "Who in my team is on vacation next week?",
+      "expected": "Returns team members on leave with dates",
+      "category": "leave",
+      "tool": "search_holidays"
+    },
+    {
+      "id": "L11_public_holidays",
+      "name": "View Public Holidays",
+      "description": "Test viewing company public holidays",
+      "prompt": "What are the public holidays this year?",
+      "expected": "Returns list of public holidays for 2026",
+      "category": "leave",
+      "tool": "get_public_holidays"
+    },
+    {
+      "id": "L12_leave_with_reason",
+      "name": "Leave Request with Reason",
+      "description": "Test submitting leave with specific reason",
+      "prompt": "Request 2 days off for my sister's wedding on June 5-6, 2026",
+      "expected": "Request created with reason attached",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true
+    },
+    {
+      "id": "L13_request_unpaid",
+      "name": "Request Unpaid Leave",
+      "description": "Test requesting unpaid leave beyond PTO balance",
+      "prompt": "Request 3 days of unpaid leave for July 1-3, 2026",
+      "expected": "Unpaid leave request created with request_id",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true,
+      "requires_staging": ["unpaid_leave_type"]
+    },
+    {
+      "id": "L14_all_leave_balances",
+      "name": "All Leave Balances",
+      "description": "Test viewing all leave type balances at once",
+      "prompt": "Show all my leave balances for all types (PTO, sick, unpaid, etc.)",
+      "expected": "Returns balances for all configured leave types",
+      "category": "leave",
+      "tool": "get_my_leave_balance"
+    },
+    {
+      "id": "L15_sick_same_day",
+      "name": "Same-Day Sick Leave",
+      "description": "Test submitting sick leave for current day",
+      "prompt": "I'm sick today, please submit a sick leave request for today",
+      "expected": "Same-day sick leave created",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true,
+      "requires_staging": ["sick_leave_allocation"]
+    },
+    {
+      "id": "L16_multi_day_sick",
+      "name": "Multi-Day Sick Leave",
+      "description": "Test submitting multi-day sick leave",
+      "prompt": "Submit sick leave for Monday through Wednesday next week",
+      "expected": "Multi-day sick leave request created",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true,
+      "requires_staging": ["sick_leave_allocation"]
+    },
+    {
+      "id": "L17_leave_over_holiday",
+      "name": "Leave Spanning Holiday",
+      "description": "Test requesting leave that includes a public holiday",
+      "prompt": "Request vacation for December 23-27, 2026 (includes Christmas)",
+      "expected": "Leave created, days should exclude public holiday from calculation",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true,
+      "requires_staging": ["public_holidays_2026"]
+    },
+    {
+      "id": "L18_holiday_in_range",
+      "name": "Check Holiday in Date Range",
+      "description": "Test checking if public holidays fall within a date range",
+      "prompt": "Are there any public holidays during December 20-31, 2026?",
+      "expected": "Returns public holidays within the specified range",
+      "category": "leave",
+      "tool": "get_public_holidays",
+      "requires_staging": ["public_holidays_2026"]
+    },
+    {
+      "id": "L19_year_holidays",
+      "name": "Full Year Holidays",
+      "description": "Test viewing all public holidays for planning",
+      "prompt": "Show me all public holidays for 2026 so I can plan my vacation",
+      "expected": "Returns complete list of 2026 public holidays",
+      "category": "leave",
+      "tool": "get_public_holidays",
+      "requires_staging": ["public_holidays_2026"]
+    },
+    {
+      "id": "L20_single_day_leave",
+      "name": "Single Day Leave",
+      "description": "Test requesting just one day off",
+      "prompt": "Take off just April 15, 2026 as a vacation day",
+      "expected": "Single day leave request created",
+      "category": "leave",
+      "tool": "request_leave",
+      "modifies_data": true
+    },
+    {
+      "id": "L21_balance_after_request",
+      "name": "Balance After Request",
+      "description": "Test checking balance impact after submitting request",
+      "prompt": "How many vacation days will I have left after my pending requests are approved?",
+      "expected": "Returns balance accounting for pending requests",
+      "category": "leave",
+      "tool": "get_my_leave_balance"
+    },
+    {
+      "id": "L22_multiple_pending",
+      "name": "Multiple Pending Requests",
+      "description": "Test viewing multiple pending leave requests",
+      "prompt": "Show all my pending leave requests that are waiting for approval",
+      "expected": "Returns all pending/draft status requests",
+      "category": "leave",
+      "tool": "get_my_leave_requests"
+    },
+    {
+      "id": "D01_document_categories",
+      "name": "View Document Categories",
+      "description": "Test listing available document folders",
+      "prompt": "What document categories are available to me in Odoo?",
+      "expected": "Returns list of accessible folders (Contracts, Identity, etc.) with document counts",
+      "category": "documents",
+      "tool": "get_document_categories"
+    },
+    {
+      "id": "D02_list_all_documents",
+      "name": "List All My Documents",
+      "description": "Test retrieving all personal HR documents",
+      "prompt": "Show me all my HR documents",
+      "expected": "Returns list of documents with id, filename, category, mimetype, size, upload_date",
+      "category": "documents",
+      "tool": "get_my_documents"
+    },
+    {
+      "id": "D03_list_contracts",
+      "name": "List Contract Documents",
+      "description": "Test filtering documents by contracts category",
+      "prompt": "Show me my employment contracts",
+      "expected": "Returns documents from Contracts folder only",
+      "category": "documents",
+      "tool": "get_my_documents"
+    },
+    {
+      "id": "D04_list_identity",
+      "name": "List Identity Documents",
+      "description": "Test filtering identity documents",
+      "prompt": "Show me my identity documents on file (passport, ID, etc.)",
+      "expected": "Returns documents from Identity folder only",
+      "category": "documents",
+      "tool": "get_my_documents"
+    },
+    {
+      "id": "D05_download_document",
+      "name": "Download Document",
+      "description": "Test downloading a specific document",
+      "prompt": "Download my latest contract document",
+      "expected": "Returns document with id, filename, mimetype, content_base64",
+      "category": "documents",
+      "tool": "download_document",
+      "depends_on": "D02_list_all_documents"
+    },
+    {
+      "id": "D06_upload_identity",
+      "name": "Upload Identity Document",
+      "description": "Test uploading an identity document",
+      "prompt": "Upload a test passport document to my Odoo identity folder. Use filename 'test_passport.pdf' with base64 content 'dGVzdCBjb250ZW50' (test content) and document type 'passport'",
+      "expected": "Document uploaded with file_id, status 'uploaded'",
+      "category": "documents",
+      "tool": "upload_identity_document",
+      "modifies_data": true
+    },
+    {
+      "id": "D07_document_details",
+      "name": "View Document Details",
+      "description": "Test viewing detailed document information",
+      "prompt": "Show details of my first document including size and upload date",
+      "expected": "Returns filename, size, upload_date, mimetype, category",
+      "category": "documents",
+      "tool": "get_document_details",
+      "depends_on": "D02_list_all_documents"
+    },
+    {
+      "id": "D08_expiring_documents",
+      "name": "Check Expiring Documents",
+      "description": "Test checking for documents with approaching expiry",
+      "prompt": "Are any of my identity documents expiring in the next 6 months?",
+      "expected": "Returns documents with expiry dates approaching or message about no expiring docs",
+      "category": "documents",
+      "tool": "get_my_documents"
+    },
+    {
+      "id": "D09_upload_id_card",
+      "name": "Upload ID Card",
+      "description": "Test uploading a national ID card document",
+      "prompt": "Upload my national ID card as id_card.pdf with base64 content 'dGVzdCBpZCBjYXJk' and type 'id_card'",
+      "expected": "ID card uploaded successfully with file_id",
+      "category": "documents",
+      "tool": "upload_identity_document",
+      "modifies_data": true
+    },
+    {
+      "id": "D10_upload_driving_license",
+      "name": "Upload Driving License",
+      "description": "Test uploading a driving license document",
+      "prompt": "Upload my driving license as driving_license.pdf with base64 content 'dGVzdCBsaWNlbnNl' and type 'driving_license'",
+      "expected": "Driving license uploaded successfully with file_id",
+      "category": "documents",
+      "tool": "upload_identity_document",
+      "modifies_data": true
+    },
+    {
+      "id": "D11_document_count",
+      "name": "Document Count by Category",
+      "description": "Test counting documents per category",
+      "prompt": "How many documents do I have in each category?",
+      "expected": "Returns count of documents per folder (Contracts: X, Identity: Y)",
+      "category": "documents",
+      "tool": "get_document_categories"
+    },
+    {
+      "id": "D12_recent_documents",
+      "name": "Recent Documents",
+      "description": "Test finding recently uploaded documents",
+      "prompt": "Show me documents uploaded in the last 30 days",
+      "expected": "Returns recently uploaded documents with dates",
+      "category": "documents",
+      "tool": "get_my_documents"
+    },
+    {
+      "id": "E01_invalid_employee",
+      "name": "Invalid Employee ID",
+      "description": "Test error handling for non-existent employee",
+      "prompt": "Show profile for employee ID 99999999",
+      "expected": "Returns appropriate error message: 'Employee not found' or similar",
+      "category": "errors",
+      "tool": "get_record"
+    },
+    {
+      "id": "E02_overlapping_dates",
+      "name": "Overlapping Leave Dates",
+      "description": "Test error handling for overlapping leave requests",
+      "prompt": "Request vacation for the same dates as an existing leave request",
+      "expected": "Error: 'Dates overlap existing request' or validation error",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E03_insufficient_balance",
+      "name": "Insufficient Leave Balance",
+      "description": "Test error handling when requesting more leave than available",
+      "prompt": "Request 100 days of vacation starting tomorrow",
+      "expected": "Error: 'Insufficient leave balance' or similar validation error",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E04_cancel_approved",
+      "name": "Cancel Approved Leave",
+      "description": "Test error handling for canceling approved leave",
+      "prompt": "Cancel an already approved leave request that has passed",
+      "expected": "Error or warning about policy restrictions",
+      "category": "errors",
+      "tool": "cancel_leave_request"
+    },
+    {
+      "id": "E05_access_denied",
+      "name": "Access Restricted Document",
+      "description": "Test error handling for accessing others' documents",
+      "prompt": "Show me another employee's contract document",
+      "expected": "Error: 'Access denied' or restricted access message",
+      "category": "errors",
+      "tool": "get_document"
+    },
+    {
+      "id": "E06_invalid_dates",
+      "name": "Invalid Date Format",
+      "description": "Test error handling for invalid date input",
+      "prompt": "Request leave for February 30, 2026",
+      "expected": "Error: 'Invalid date' or date validation error",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E07_end_before_start",
+      "name": "End Date Before Start",
+      "description": "Test error handling when end date is before start date",
+      "prompt": "Request vacation from March 15 to March 10, 2026",
+      "expected": "Error: 'End date must be after start date' or similar",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E08_past_date_request",
+      "name": "Past Date Request",
+      "description": "Test error handling when requesting leave in the past",
+      "prompt": "Request vacation for last week (December 20-24, 2025)",
+      "expected": "Error about past dates or validation error",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E09_invalid_leave_type",
+      "name": "Invalid Leave Type",
+      "description": "Test error handling for non-existent leave type",
+      "prompt": "Request 'Birthday Leave' for my birthday next month",
+      "expected": "Error: 'Leave type not found' or similar",
+      "category": "errors",
+      "tool": "request_leave"
+    },
+    {
+      "id": "E10_cancel_nonexistent",
+      "name": "Cancel Non-Existent Request",
+      "description": "Test error handling when canceling invalid request ID",
+      "prompt": "Cancel leave request with ID 99999999",
+      "expected": "Error: 'Request not found' or similar",
+      "category": "errors",
+      "tool": "cancel_leave_request"
+    },
+    {
+      "id": "E11_empty_document_upload",
+      "name": "Empty Document Upload",
+      "description": "Test error handling for upload without content",
+      "prompt": "Upload an empty identity document without any content",
+      "expected": "Error: 'No content provided' or validation error",
+      "category": "errors",
+      "tool": "upload_identity_document"
+    },
+    {
+      "id": "E12_invalid_document_type",
+      "name": "Invalid Document Type",
+      "description": "Test error handling for invalid document type parameter",
+      "prompt": "Upload my contract document with type 'invalid_type_xyz'",
+      "expected": "Error about invalid document type or validation error",
+      "category": "errors",
+      "tool": "upload_identity_document"
+    },
+    {
+      "id": "C01_disconnect",
+      "name": "Disconnect MCP Server",
+      "description": "Disconnect from the MCP server",
+      "prompt": "Go to claude.ai/settings/connectors, find '{mcp_server_name}' and click the menu (...) then Disconnect",
+      "expected": "Integration shows 'Connect' button (disconnected)",
+      "category": "cleanup"
+    },
+    {
+      "id": "C02_remove_server",
+      "name": "Remove MCP Server",
+      "description": "Remove the MCP server integration completely",
+      "prompt": "Go to claude.ai/admin-settings/connectors, find '{mcp_server_name}', click the menu (...), then Remove and confirm the deletion",
+      "expected": "Integration removed from the list",
+      "category": "cleanup"
+    }
+  ],
+  "test_suites": {
+    "smoke": [
+      "S01_verify_login",
+      "P01_get_my_profile",
+      "L01_get_leave_balance",
+      "D01_document_categories"
+    ],
+    "setup": [
+      "S01_verify_login",
+      "S02_add_server",
+      "S03_oauth_connect",
+      "S04_verify_tools"
+    ],
+    "profile": [
+      "P01_get_my_profile",
+      "P02_get_my_manager",
+      "P03_get_my_team",
+      "P04_find_colleague_name",
+      "P05_find_by_department",
+      "P06_get_direct_reports",
+      "P07_update_contact",
+      "P08_search_directory",
+      "P09_custom_fields",
+      "P10_coach_info",
+      "P11_find_all_managers",
+      "P12_revert_contact"
+    ],
+    "leave": [
+      "L01_get_leave_balance",
+      "L02_leave_balance_type",
+      "L03_leave_history",
+      "L04_pending_leave",
+      "L05_upcoming_leave",
+      "L06_request_vacation",
+      "L07_request_sick",
+      "L08_request_half_day",
+      "L09_cancel_leave",
+      "L10_team_availability",
+      "L11_public_holidays",
+      "L12_leave_with_reason",
+      "L13_request_unpaid",
+      "L14_all_leave_balances",
+      "L15_sick_same_day",
+      "L16_multi_day_sick",
+      "L17_leave_over_holiday",
+      "L18_holiday_in_range",
+      "L19_year_holidays",
+      "L20_single_day_leave",
+      "L21_balance_after_request",
+      "L22_multiple_pending"
+    ],
+    "documents": [
+      "D01_document_categories",
+      "D02_list_all_documents",
+      "D03_list_contracts",
+      "D04_list_identity",
+      "D05_download_document",
+      "D06_upload_identity",
+      "D07_document_details",
+      "D08_expiring_documents",
+      "D09_upload_id_card",
+      "D10_upload_driving_license",
+      "D11_document_count",
+      "D12_recent_documents"
+    ],
+    "errors": [
+      "E01_invalid_employee",
+      "E02_overlapping_dates",
+      "E03_insufficient_balance",
+      "E04_cancel_approved",
+      "E05_access_denied",
+      "E06_invalid_dates",
+      "E07_end_before_start",
+      "E08_past_date_request",
+      "E09_invalid_leave_type",
+      "E10_cancel_nonexistent",
+      "E11_empty_document_upload",
+      "E12_invalid_document_type"
+    ],
+    "cleanup": [
+      "C01_disconnect",
+      "C02_remove_server"
+    ],
+    "read_only": [
+      "P01_get_my_profile",
+      "P02_get_my_manager",
+      "P03_get_my_team",
+      "P04_find_colleague_name",
+      "P05_find_by_department",
+      "P06_get_direct_reports",
+      "P08_search_directory",
+      "P09_custom_fields",
+      "P10_coach_info",
+      "P11_find_all_managers",
+      "L01_get_leave_balance",
+      "L02_leave_balance_type",
+      "L03_leave_history",
+      "L04_pending_leave",
+      "L05_upcoming_leave",
+      "L10_team_availability",
+      "L11_public_holidays",
+      "L14_all_leave_balances",
+      "L18_holiday_in_range",
+      "L19_year_holidays",
+      "L21_balance_after_request",
+      "L22_multiple_pending",
+      "D01_document_categories",
+      "D02_list_all_documents",
+      "D03_list_contracts",
+      "D04_list_identity",
+      "D07_document_details",
+      "D08_expiring_documents",
+      "D11_document_count",
+      "D12_recent_documents"
+    ],
+    "write_tests": [
+      "P07_update_contact",
+      "P12_revert_contact",
+      "L06_request_vacation",
+      "L07_request_sick",
+      "L08_request_half_day",
+      "L09_cancel_leave",
+      "L12_leave_with_reason",
+      "L13_request_unpaid",
+      "L15_sick_same_day",
+      "L16_multi_day_sick",
+      "L17_leave_over_holiday",
+      "L20_single_day_leave",
+      "D06_upload_identity",
+      "D09_upload_id_card",
+      "D10_upload_driving_license"
+    ],
+    "all_leave_types": [
+      "L01_get_leave_balance",
+      "L02_leave_balance_type",
+      "L06_request_vacation",
+      "L07_request_sick",
+      "L13_request_unpaid",
+      "L14_all_leave_balances",
+      "L15_sick_same_day",
+      "L16_multi_day_sick"
+    ],
+    "public_holidays": [
+      "L11_public_holidays",
+      "L17_leave_over_holiday",
+      "L18_holiday_in_range",
+      "L19_year_holidays"
+    ],
+    "requires_staging_config": [
+      "L02_leave_balance_type",
+      "L07_request_sick",
+      "L13_request_unpaid",
+      "L15_sick_same_day",
+      "L16_multi_day_sick",
+      "L17_leave_over_holiday",
+      "L18_holiday_in_range",
+      "L19_year_holidays"
+    ],
+    "comprehensive": [
+      "S01_verify_login",
+      "S03_oauth_connect",
+      "S04_verify_tools",
+      "P01_get_my_profile",
+      "P02_get_my_manager",
+      "P03_get_my_team",
+      "P04_find_colleague_name",
+      "P05_find_by_department",
+      "P06_get_direct_reports",
+      "P07_update_contact",
+      "P08_search_directory",
+      "P09_custom_fields",
+      "P10_coach_info",
+      "P11_find_all_managers",
+      "P12_revert_contact",
+      "L01_get_leave_balance",
+      "L02_leave_balance_type",
+      "L03_leave_history",
+      "L04_pending_leave",
+      "L05_upcoming_leave",
+      "L06_request_vacation",
+      "L07_request_sick",
+      "L09_cancel_leave",
+      "L10_team_availability",
+      "L11_public_holidays",
+      "L12_leave_with_reason",
+      "L13_request_unpaid",
+      "L14_all_leave_balances",
+      "L15_sick_same_day",
+      "L16_multi_day_sick",
+      "L17_leave_over_holiday",
+      "L18_holiday_in_range",
+      "L19_year_holidays",
+      "L20_single_day_leave",
+      "L21_balance_after_request",
+      "L22_multiple_pending",
+      "D01_document_categories",
+      "D02_list_all_documents",
+      "D03_list_contracts",
+      "D04_list_identity",
+      "D05_download_document",
+      "D06_upload_identity",
+      "D07_document_details",
+      "D08_expiring_documents",
+      "D09_upload_id_card",
+      "D10_upload_driving_license",
+      "D11_document_count",
+      "D12_recent_documents",
+      "E01_invalid_employee",
+      "E02_overlapping_dates",
+      "E03_insufficient_balance",
+      "E04_cancel_approved",
+      "E05_access_denied",
+      "E06_invalid_dates",
+      "E07_end_before_start",
+      "E08_past_date_request",
+      "E09_invalid_leave_type",
+      "E10_cancel_nonexistent",
+      "E11_empty_document_upload",
+      "E12_invalid_document_type"
+    ],
+    "full": [
+      "S01_verify_login",
+      "S03_oauth_connect",
+      "S04_verify_tools",
+      "P01_get_my_profile",
+      "P02_get_my_manager",
+      "P03_get_my_team",
+      "P04_find_colleague_name",
+      "P05_find_by_department",
+      "P06_get_direct_reports",
+      "P07_update_contact",
+      "P08_search_directory",
+      "L01_get_leave_balance",
+      "L03_leave_history",
+      "L04_pending_leave",
+      "L06_request_vacation",
+      "L09_cancel_leave",
+      "L10_team_availability",
+      "L11_public_holidays",
+      "D01_document_categories",
+      "D02_list_all_documents",
+      "D03_list_contracts",
+      "D05_download_document",
+      "D07_document_details",
+      "E01_invalid_employee",
+      "E03_insufficient_balance"
+    ]
+  },
+  "tools_reference": {
+    "employee_self_service": [
+      {
+        "name": "get_my_profile",
+        "description": "Get your employee profile information",
+        "category": "Profile & Organization",
+        "status": "implemented"
+      },
+      {
+        "name": "get_my_manager",
+        "description": "Get information about your direct manager",
+        "category": "Profile & Organization",
+        "status": "implemented"
+      },
+      {
+        "name": "get_my_team",
+        "description": "Get list of colleagues in your department",
+        "category": "Profile & Organization",
+        "status": "implemented"
+      },
+      {
+        "name": "find_colleague",
+        "description": "Find a colleague by name",
+        "category": "Profile & Organization",
+        "status": "implemented"
+      },
+      {
+        "name": "get_direct_reports",
+        "description": "Get employees who report to you",
+        "category": "Profile & Organization",
+        "status": "implemented"
+      },
+      {
+        "name": "update_my_contact",
+        "description": "Update your contact information",
+        "category": "Profile & Organization",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "get_my_leave_balance",
+        "description": "Get remaining leave balance for all leave types",
+        "category": "Time Off / Leave",
+        "status": "implemented"
+      },
+      {
+        "name": "get_my_leave_requests",
+        "description": "Get leave/time-off requests and status",
+        "category": "Time Off / Leave",
+        "status": "implemented"
+      },
+      {
+        "name": "request_leave",
+        "description": "Submit a new leave/time-off request",
+        "category": "Time Off / Leave",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "cancel_leave_request",
+        "description": "Cancel a pending leave request",
+        "category": "Time Off / Leave",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "search_holidays",
+        "description": "Search for holidays/time-off in a date range",
+        "category": "Time Off / Leave",
+        "status": "implemented"
+      },
+      {
+        "name": "get_public_holidays",
+        "description": "Get list of public holidays",
+        "category": "Time Off / Leave",
+        "status": "implemented"
+      },
+      {
+        "name": "get_my_documents",
+        "description": "Get personal HR documents",
+        "category": "Documents (DMS)",
+        "status": "implemented"
+      },
+      {
+        "name": "get_document_categories",
+        "description": "Get list of document categories/folders",
+        "category": "Documents (DMS)",
+        "status": "implemented"
+      },
+      {
+        "name": "upload_identity_document",
+        "description": "Upload an identity document",
+        "category": "Documents (DMS)",
+        "status": "needs_verification",
+        "modifies_data": true
+      },
+      {
+        "name": "download_document",
+        "description": "Download a specific document",
+        "category": "Documents (DMS)",
+        "status": "needs_verification"
+      },
+      {
+        "name": "get_document_details",
+        "description": "Get detailed information about a document",
+        "category": "Documents (DMS)",
+        "status": "implemented"
+      }
+    ],
+    "crud_tools": [
+      {
+        "name": "search_records",
+        "description": "Search for records in any Odoo model",
+        "status": "implemented"
+      },
+      {
+        "name": "get_record",
+        "description": "Get a single record by ID",
+        "status": "implemented"
+      },
+      {
+        "name": "create_record",
+        "description": "Create a new record",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "update_record",
+        "description": "Update an existing record",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "delete_record",
+        "description": "Delete a record",
+        "status": "implemented",
+        "modifies_data": true
+      },
+      {
+        "name": "count_records",
+        "description": "Count records matching criteria",
+        "status": "implemented"
+      },
+      {
+        "name": "list_models",
+        "description": "List available Odoo models",
+        "status": "implemented"
+      }
+    ]
+  },
+  "test_data_requirements": {
+    "odoo": {
+      "employees": "Employee records with full profile data, department, manager",
+      "departments": "Department structure with managers assigned",
+      "leave_types": "Leave types configured (PTO, Sick, Unpaid)",
+      "leave_allocations": "Leave allocations assigned to test employees",
+      "documents": "HR Documents uploaded to test employee folders",
+      "public_holidays": "Public holidays configured for 2026"
+    },
+    "test_user": {
+      "employee_record": "Must be linked to an employee record",
+      "leave_allocations": "Must have leave allocations for multiple types",
+      "documents": "Must have documents in at least 2 categories",
+      "manager": "Must have a manager assigned",
+      "department": "Must belong to a department with colleagues"
+    }
+  }
+}

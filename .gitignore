@@ -1,0 +1,92 @@
+# Scratch / temporary files
+.scratch/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.local.json
+
+# Secrets
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Build artifacts
+*.log
+*.tmp
+.DS_Store
+
+# Docker
+docker-compose.override.yml
+
+# Distribution
+*.tar.gz
+*.whl
+
+# Playwright auth state (contains session cookies)
+.playwright-state/
+*-sa-key-*.json
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+.terraform.lock.hcl
+
+# Node (reviewer kit CLI deps)
+node_modules/

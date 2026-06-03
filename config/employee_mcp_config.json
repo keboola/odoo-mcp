@@ -1,0 +1,78 @@
+{
+  "_comment": "Illustrative example of an employee self-service configuration. The server is configured via environment variables (see .env.example); this file documents the feature surface and shows how optional custom fields map to Odoo fields.",
+  "mode": "employee_self_service",
+  "version": "1.1",
+
+  "features": {
+    "profile": {
+      "enabled": true,
+      "fields": [
+        "name",
+        "work_email",
+        "mobile_phone",
+        "department_id",
+        "job_id",
+        "parent_id",
+        "coach_id"
+      ]
+    },
+    "directory": {
+      "enabled": true,
+      "searchable_fields": ["name", "work_email", "department_id"],
+      "visible_fields": [
+        "name",
+        "work_email",
+        "mobile_phone",
+        "department_id",
+        "job_title"
+      ]
+    },
+    "leave": {
+      "enabled": true,
+      "allow_requests": true,
+      "allow_cancellation": true,
+      "visible_leave_types": ["all"]
+    },
+    "documents": {
+      "enabled": true,
+      "dms_integration": true,
+      "allowed_folders": ["Contracts", "Identity"],
+      "restricted_folders": ["Background Checks", "Offboarding Documents"],
+      "upload_allowed": ["Identity"]
+    }
+  },
+
+  "security": {
+    "user_context_required": true,
+    "manager_features": false,
+    "admin_features": false,
+    "rate_limit": {
+      "requests_per_minute": 30,
+      "write_operations_per_hour": 10,
+      "document_uploads_per_day": 5
+    }
+  },
+
+  "odoo": {
+    "url": "LOADED_FROM_ENV_ODOO_URL",
+    "database": "LOADED_FROM_ENV_ODOO_DB",
+    "user_mapping": "oauth_email_to_work_email"
+  },
+
+  "optional": {
+    "custom_employee_fields": {
+      "_comment": "Set via the EMPLOYEE_CUSTOM_FIELDS env var. Maps an output key to a custom hr.employee field added by an Odoo addon. Example only:",
+      "preferred_name": "x_preferred_name",
+      "division": "x_division"
+    },
+    "sign_module": {
+      "_comment": "Set SIGN_MODULE_ENABLED=true. Requires the community OCA sign_oca addon (sign.oca.* models).",
+      "enabled": false,
+      "source": "OCA"
+    },
+    "dms": {
+      "_comment": "Document tools assume an Odoo Documents/DMS setup. Folder names are configurable via DMS_ALLOWED_FOLDERS / DMS_RESTRICTED_FOLDERS.",
+      "enabled": true
+    }
+  }
+}

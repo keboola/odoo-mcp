@@ -1,0 +1,17 @@
+{
+  "authorization_server": "https://auth.example.com",
+  "resource_identifier": "https://your-mcp-server.example.com",
+  "issuer": "https://auth.example.com",
+  "scopes": {
+    "odoo.read": "Read access to Odoo records",
+    "odoo.write": "Write access to Odoo records",
+    "odoo.delete": "Delete access to Odoo records"
+  },
+  "client_registration": {
+    "enabled": true,
+    "allowed_redirect_uris": [
+      "http://localhost:*",
+      "https://*.claude.ai/*"
+    ]
+  }
+}

@@ -1,0 +1,90 @@
+name: AI Code Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+jobs:
+  ai_review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    outputs:
+      decision: ${{ steps.review.outputs.decision }}
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # Checkout base branch to run trusted AI reviewer script
+          # This prevents malicious PRs from modifying the reviewer to gain elevated permissions
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run AI Reviewer
+        id: review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY secret is not set. Skipping AI review."
+            echo "decision=SKIPPED" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Run the trusted AI reviewer script from base branch and capture output
+          OUTPUT=$(python scripts/ai_reviewer.py \
+            --repo "$REPO" \
+            --pr "$PR_NUMBER" \
+            --github-token "$GITHUB_TOKEN" 2>&1) || {
+            echo "$OUTPUT"
+            echo "decision=ERROR" >> "$GITHUB_OUTPUT"
+            exit 1
+          }
+          echo "$OUTPUT"
+
+          # Parse the decision from the script output
+          if echo "$OUTPUT" | grep -q "Submitted review: APPROVE"; then
+            echo "decision=APPROVE" >> "$GITHUB_OUTPUT"
+          elif echo "$OUTPUT" | grep -q "Submitted review: REQUEST_CHANGES"; then
+            echo "decision=REQUEST_CHANGES" >> "$GITHUB_OUTPUT"
+            echo "::error::AI reviewer requested changes - see review comments for details"
+            exit 1
+          else
+            echo "decision=COMMENT" >> "$GITHUB_OUTPUT"
+          fi
+
+  auto_merge:
+    needs: ai_review
+    if: needs.ai_review.outputs.decision == 'APPROVE'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "AI reviewer approved - enabling auto-merge for PR #${{ github.event.pull_request.number }}"
+          gh pr merge ${{ github.event.pull_request.number }} --auto --squash --repo ${{ github.repository }}
+          if [ $? -eq 0 ]; then
+            echo "Auto-merge enabled successfully"
+          else
+            echo "Auto-merge could not be enabled (may already be set or checks pending)"
+            exit 1
+          fi

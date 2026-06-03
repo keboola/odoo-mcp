@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  odoo-mcp-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ODOO_URL=${ODOO_URL:-https://your-odoo-instance.example.com}
+      - ODOO_DB=${ODOO_DB:-your-database-name}
+      - ODOO_API_KEY=${ODOO_API_KEY}
+      - OAUTH_AUTHORIZATION_SERVER=${OAUTH_AUTHORIZATION_SERVER:-https://auth.example.com}
+      - OAUTH_RESOURCE_IDENTIFIER=${OAUTH_RESOURCE_IDENTIFIER:-https://your-mcp-server.example.com}
+      - DEBUG=${DEBUG:-false}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8080/health', timeout=5).raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # For local development testing
+  mock-auth-server:
+    image: mockserver/mockserver:latest
+    ports:
+      - "1080:1080"
+    environment:
+      - MOCKSERVER_LOG_LEVEL=INFO
+    profiles:
+      - testing
+
+  # For running E2E tests
+  playwright:
+    image: mcr.microsoft.com/playwright/python:v1.49.0-jammy
+    working_dir: /app
+    volumes:
+      - ..:/app
+    environment:
+      - TEST_MCP_SERVER_URL=http://odoo-mcp-server:8080
+      - TEST_AUTH_SERVER_URL=http://mock-auth-server:1080
+    command: pytest tests/e2e -v
+    depends_on:
+      - odoo-mcp-server
+      - mock-auth-server
+    profiles:
+      - testing

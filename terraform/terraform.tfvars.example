@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars and fill in your values (terraform.tfvars is gitignored).
+
+# GCP project that will host the Vertex AI access + Workload Identity Federation
+# used by the optional AI/security PR reviewers.
+gcp_project_id = "your-gcp-project-id"
+gcp_region     = "europe-west1"
+
+# GitHub repository this infrastructure grants access to.
+github_org       = "your-github-org"
+github_repo_name = "odoo-mcp-server"
+
+# Gemini API key for the general AI code reviewer (.github/workflows/ai-review.yml).
+gemini_api_key = "your-gemini-api-key"
+
+# Optional: Anthropic API key. Leave empty to use Claude via Vertex AI (WIF) instead.
+anthropic_api_key = ""

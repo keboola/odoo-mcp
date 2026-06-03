@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "odoo-mcp-server"
+version = "1.0.0"
+description = "OAuth 2.1 MCP server for Odoo ERP: per-user identity, employee self-service, and document signing"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+    { name = "Odoo MCP Server Contributors" }
+]
+dependencies = [
+    "mcp>=1.9.4,<2",
+    "fastapi>=0.115.0,<1",
+    "uvicorn>=0.32.0,<1",
+    "authlib>=1.4.0,<2",
+    "httpx>=0.28.0,<1",
+    "pydantic>=2.10.0,<3",
+    "pydantic-settings>=2.6.0,<3",
+    "cachetools>=5.3.0,<6",
+    "slowapi>=0.1.9,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "respx>=0.22.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[project.scripts]
+odoo-mcp-server = "odoo_mcp_server.server:main"
+odoo-mcp-http = "odoo_mcp_server.http_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/odoo_mcp_server"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "e2e: End-to-end tests (run via Claude Code Chrome integration)",
+    "oauth: OAuth-related tests",
+    "odoo: Odoo-related tests",
+    "live: Tests against live Odoo instance",
+    "claude: Tests for Claude.ai MCP integration",
+    "mcp: MCP protocol tests",
+    "agent_sdk: Agent SDK tests",
+    "employee: Employee self-service tests",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 140
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+# Relaxed type checking to allow incremental adoption
+strict = false
+warn_return_any = false
+warn_unused_ignores = false
+check_untyped_defs = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false

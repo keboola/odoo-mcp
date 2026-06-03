@@ -1,0 +1,24 @@
+{
+  "url": "https://your-odoo-instance.example.com",
+  "database": "your-database-name",
+  "api_key": "YOUR_API_KEY_HERE",
+  "allowed_models": [
+    "res.partner",
+    "res.users",
+    "crm.lead",
+    "sale.order",
+    "purchase.order",
+    "account.move",
+    "hr.employee",
+    "hr.leave",
+    "hr.leave.type",
+    "project.project",
+    "project.task",
+    "product.product",
+    "product.template",
+    "stock.quant",
+    "stock.move"
+  ],
+  "default_limit": 20,
+  "max_limit": 100
+}
