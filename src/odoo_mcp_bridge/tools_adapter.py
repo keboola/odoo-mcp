@@ -92,6 +92,7 @@ class OdooProxyTool(Tool):
                           "administrator has installed the mcp_apikey_provisioning addon."),
                 )]
             )
+        assert token is not None  # guaranteed by `linked` above; narrows for type-checkers
         try:
             content = await dispatch(_BRIDGE_CONFIG, self.name, arguments, email, token.token)
         except Exception as exc:  # noqa: BLE001 - surface Odoo errors as tool output

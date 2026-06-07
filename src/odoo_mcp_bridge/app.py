@@ -92,5 +92,5 @@ def build_app(config: BridgeConfig, vault: Vault | None = None) -> Starlette:
     return Starlette(
         routes=routes,
         middleware=[Middleware(DarkModeMiddleware)],
-        lifespan=lambda app: mcp_app.lifespan(mcp_app),
+        lifespan=lambda app: mcp_app.lifespan(mcp_app),  # type: ignore[arg-type]
     )
