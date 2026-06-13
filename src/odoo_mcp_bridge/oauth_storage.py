@@ -46,8 +46,9 @@ def build_client_storage(config):
             raise RuntimeError("OAUTH_CLIENT_STORAGE=firestore requires GCP_PROJECT to be set.")
         from key_value.aio.stores.firestore import FirestoreStore
 
-        logger.info("OAuth proxy state: Firestore (project=%s, collection=%s)",
-                    config.gcp_project, config.oauth_client_storage_collection)
+        # Log a constant message only — do not interpolate config-derived values (the config
+        # object also carries secrets, which static analysis taints as sensitive).
+        logger.info("OAuth proxy state: Firestore backend selected (shared, persistent).")
         return FirestoreStore(
             project=config.gcp_project,
             default_collection=config.oauth_client_storage_collection,
@@ -58,7 +59,7 @@ def build_client_storage(config):
             raise RuntimeError("OAUTH_CLIENT_STORAGE=redis requires OAUTH_CLIENT_STORAGE_REDIS_URL.")
         from key_value.aio.stores.redis import RedisStore
 
-        logger.info("OAuth proxy state: Redis (collection=%s)", config.oauth_client_storage_collection)
+        logger.info("OAuth proxy state: Redis backend selected (shared, persistent).")
         return RedisStore(
             url=config.oauth_client_storage_redis_url,
             default_collection=config.oauth_client_storage_collection,
