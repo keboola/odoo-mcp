@@ -29,6 +29,10 @@ def test_default_disk_returns_none(backend):
 
 
 def test_memory_backend():
+    # The py-key-value driver ships with the bridge extras; skip if a bare [dev] env
+    # (e.g. the upstream unit-tests job) doesn't have it. The routing/fail-fast tests above
+    # don't need it.
+    pytest.importorskip("key_value.aio.stores.memory")
     from key_value.aio.stores.memory import MemoryStore
 
     store = build_client_storage(_cfg(oauth_client_storage="memory"))
